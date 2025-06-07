@@ -13,7 +13,32 @@ const todos_asc = computed(() =>
   })
 );
 
-const addTodo = () => {};
+const addTodo = () => {
+  if (input_content.value.trim() === "" || input_category.value === null) {
+    return;
+  }
+  todos.value.push({
+    content: input_content.value,
+    category: input_category.value,
+    done: false,
+    createdAt: new Date().getTime(),
+  });
+
+  input_content.value = "";
+  input_category.value = null;
+};
+
+const removeTodo = (todo) => {
+  todos.value = todos.value.filter((t) => t !== todo);
+};
+
+watch(
+  todos,
+  (newVal) => {
+    localStorage.setItem("todos", JSON.stringify(newVal));
+  },
+  { deep: true }
+);
 
 watch(name, (newVal) => {
   localStorage.setItem("name", newVal);
@@ -21,6 +46,7 @@ watch(name, (newVal) => {
 
 onMounted(() => {
   name.value = localStorage.getItem("name") || "";
+  todos.value = JSON.parse(localStorage.getItem("todos")) || [];
 });
 </script>
 
@@ -50,7 +76,8 @@ onMounted(() => {
               name="category"
               value="business"
             />
-            <span class="bubble business">Business</span>
+            <span class="bubble business"></span>
+            <div>Business</div>
           </label>
 
           <label>
@@ -60,10 +87,33 @@ onMounted(() => {
               name="category"
               value="personal"
             />
-            <span class="bubble personal">Personal</span>
+            <span class="bubble personal"></span>
+            <div>Personal</div>
           </label>
         </div>
+        <input type="submit" value="Add todo" />
       </form>
+    </section>
+    <section class="todo-list">
+      <h3>TODO LIST</h3>
+      <div class="list">
+        <div
+          v-for="todo in todos_asc"
+          :class="`todo-item ${todo.done && 'done'}`"
+        >
+          <label>
+            <input type="checkbox" v-model="todo.done" />
+            <span :class="`bubble ${todo.category}`"></span>
+          </label>
+          <div class="todo-content">
+            <input type="text" v-model="todo.content" />
+          </div>
+
+          <div class="actions">
+            <button class="delete" @click="removeTodo(todo)">Delete</button>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 </template>
